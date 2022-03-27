@@ -2,25 +2,62 @@
 import argparse
 import boto3
 from dataclasses import dataclass
-from helpers import get_security_groups, get_subnets
 
 @dataclass
 class RunTaskInFargate:
-    profile_name: str
-    cmd: str
-        
+    @staticmethod
+    def get_security_groups(self, ec2_name_filter):
+        """
+        Get All security group attached to EC2 instances
+        boto3_ec2_client: boto3 ec2 client instance
+        ec2_name_filter: EC2 name filter you want to get the security group from
+        return: list of security groups
+        """
+        ec2_client = boto3.client('ec2', region_name=region_name)
+        ec2_all = ec2_client.describe_instances(Filters=[
+        {
+            'Name': 'tag:Name',
+            'Values': [
+                ec2_name_filter,
+            ]
+        },
+        ])
+        sgs = []
+        for inst in ec2_all['Reservations']:
+            for rec in inst['Instances']:
+                for sub in rec['SecurityGroups']:
+                    sgs.append(sub['GroupId'])
 
-    @staticmethod(f)
-    def run_task_in_fargate(profile_name, cluster_name, task_definition_name, comand, region_name="us-west-2",
+        sgs = list(set(sgs))
+        return sgs
+
+    @staticmethod
+    def get_subnets(self, subnet_name_filter):
+        """
+        Get All subnets ids with tag name containing the subnet_name_filter value
+        boto3_ec2_client: boto3 ec2 client instance
+        subnet_name_filter: Subnet tag name filter
+        return: list of subnets ids
+        """
+        
+        sn_all = ec2_client.describe_subnets()
+        subnets_ids = []
+        for sn in sn_all['Subnets']:
+            for tag in sn['Tags']:
+                if subnet_name_filter in tag['Value']:
+                    subnets_ids.append(sn['SubnetId'])
+        return subnets_ids
+
+    def run_task_in_fargate(self, cluster_name, task_definition_name, command, region_name="us-west-2",
                         ec2_name_filter="*CumulusECSCluster", subnet_name_filter="Private application", task_name="RecordCorrection"):
 
         print(locals())
         return locals()
 
-        boto3.setup_default_session(profile_name=profile_name)
-        ec2_client = boto3.client('ec2', region_name=region_name)
-        security_groups = get_security_groups(boto3_ec2_client=ec2_client, ec2_name_filter = ec2_name_filter)
-        subnets = get_subnets(boto3_ec2_client=ec2_client, subnet_name_filter=subnet_name_filter)
+        
+        
+        security_groups = self.get_security_groups(boto3_ec2_client=ec2_client, ec2_name_filter = ec2_name_filter)
+        subnets = self.get_subnets(boto3_ec2_client=ec2_client, subnet_name_filter=subnet_name_filter)
 
         ecs_client = boto3.client('ecs', region_name=region_name)
         networkConfiguration = {
@@ -53,6 +90,7 @@ class RunTaskInFargate:
 
         cluster_name = f'{stack_prefix}-CumulusECSCluster'
         task_definition_name = f'{stack_prefix}-CorrectIMSTaskDefinition'
-        response = run_fargate(profile_name=profile_name, command=cmd, stack_prefix=stack_prefix,
-                cluster_name=cluster_name, task_definition_name=task_definition_name)
+        client = cls()
+        boto3.setup_default_session(profile_name=profile_name)
+        response = client.run_task_in_fargate(cluster_name=cluster_name, task_definition_name=task_definition_name, command=cmd)
         print(response)

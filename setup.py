@@ -27,9 +27,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'cumulus-cleanup=cumulus_cleanup.cleanup_process:CleanupCumulusRecords.cli',
-            'ims-cleanup=cumulus_cleanup.fix_ems_records:EMS_Correct.cli',
-            'dlq-cleanup=cumulus_cleanup.clean_dlq:Correct_DLQ.cli'
+            'run-task-in-fargate=src.main:RunTaskInFargate.cli'
         ]
     },
     packages=find_packages(exclude=['docs', 'tests*']),
