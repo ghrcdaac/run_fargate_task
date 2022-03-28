@@ -5,7 +5,8 @@ from dataclasses import dataclass
 
 @dataclass
 class RunTaskInFargate:
-    @staticmethod
+    region_name: str= "us-west-2"
+
     def get_security_groups(self, ec2_name_filter):
         """
         Get All security group attached to EC2 instances
@@ -13,7 +14,7 @@ class RunTaskInFargate:
         ec2_name_filter: EC2 name filter you want to get the security group from
         return: list of security groups
         """
-        ec2_client = boto3.client('ec2', region_name=region_name)
+        ec2_client = boto3.client('ec2', region_name=self.region_name)
         ec2_all = ec2_client.describe_instances(Filters=[
         {
             'Name': 'tag:Name',
@@ -31,7 +32,6 @@ class RunTaskInFargate:
         sgs = list(set(sgs))
         return sgs
 
-    @staticmethod
     def get_subnets(self, subnet_name_filter):
         """
         Get All subnets ids with tag name containing the subnet_name_filter value
@@ -39,7 +39,7 @@ class RunTaskInFargate:
         subnet_name_filter: Subnet tag name filter
         return: list of subnets ids
         """
-        
+        ec2_client = boto3.client('ec2', region_name=self.region_name)
         sn_all = ec2_client.describe_subnets()
         subnets_ids = []
         for sn in sn_all['Subnets']:
@@ -48,18 +48,14 @@ class RunTaskInFargate:
                     subnets_ids.append(sn['SubnetId'])
         return subnets_ids
 
-    def run_task_in_fargate(self, cluster_name, task_definition_name, command, region_name="us-west-2",
-                        ec2_name_filter="*CumulusECSCluster", subnet_name_filter="Private application", task_name="RecordCorrection"):
+    def run_task_in_fargate(self, cluster_name, task_definition_name, command,
+                            ec2_name_filter="*CumulusECSCluster", subnet_name_filter="Private application",
+                            task_name="IMSCorrection"):
 
-        print(locals())
-        return locals()
+        security_groups = self.get_security_groups(ec2_name_filter = ec2_name_filter)
+        subnets = self.get_subnets(subnet_name_filter=subnet_name_filter)
 
-        
-        
-        security_groups = self.get_security_groups(boto3_ec2_client=ec2_client, ec2_name_filter = ec2_name_filter)
-        subnets = self.get_subnets(boto3_ec2_client=ec2_client, subnet_name_filter=subnet_name_filter)
-
-        ecs_client = boto3.client('ecs', region_name=region_name)
+        ecs_client = boto3.client('ecs', region_name=self.region_name)
         networkConfiguration = {
         'awsvpcConfiguration': {
             'subnets': subnets,
@@ -69,7 +65,7 @@ class RunTaskInFargate:
         }
         response = ecs_client.run_task(cluster=cluster_name,
                                launchType='FARGATE',
-                               overrides={'containerOverrides': [{'name': task_name,'command': comand}]},
+                               overrides={'containerOverrides': [{'name': task_name,'command': command}]},
                                networkConfiguration=networkConfiguration,
                                taskDefinition=task_definition_name)
         return response
@@ -92,5 +88,6 @@ class RunTaskInFargate:
         task_definition_name = f'{stack_prefix}-CorrectIMSTaskDefinition'
         client = cls()
         boto3.setup_default_session(profile_name=profile_name)
-        response = client.run_task_in_fargate(cluster_name=cluster_name, task_definition_name=task_definition_name, command=cmd)
+        response = client.run_task_in_fargate(cluster_name=cluster_name, task_definition_name=task_definition_name,
+                                              command=cmd)
         print(response)
