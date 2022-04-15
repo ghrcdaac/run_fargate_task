@@ -50,7 +50,7 @@ class RunTaskInFargate:
 
     def run_task_in_fargate(self, cluster_name, task_definition_name, command,
                             ec2_name_filter="*CumulusECSCluster", subnet_name_filter="Private application",
-                            task_name="IMSCorrection"):
+                            task_name="IMSCorrection", **env_variables):
 
         security_groups = self.get_security_groups(ec2_name_filter = ec2_name_filter)
         subnets = self.get_subnets(subnet_name_filter=subnet_name_filter)
@@ -63,9 +63,15 @@ class RunTaskInFargate:
             'assignPublicIp': 'DISABLED'
             }
         }
+        overrides={'containerOverrides': [{'name': task_name,'command': command}]}
+        if env_variables:
+            overrides['environment'] = []
+        for key, value in env_variables:
+            overrides['environment'].append({'name': key, 'value': value})
+
         response = ecs_client.run_task(cluster=cluster_name,
                                launchType='FARGATE',
-                               overrides={'containerOverrides': [{'name': task_name,'command': command}]},
+                               overrides=overrides,
                                networkConfiguration=networkConfiguration,
                                taskDefinition=task_definition_name)
         return response

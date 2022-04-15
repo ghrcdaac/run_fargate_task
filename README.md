@@ -30,11 +30,11 @@ Check CloudWatch log group `<PREFIX>-CorrectIMSEcsLogs`. You should see somethin
 {
     "message": "Successfully updated granule with Granule Id: LC_NALMA_annex_211231_110000.dat",
     "timestamp": "2022-03-29T15:58:30.564985",
-    "level": "info"
+    "level": "inf"o
 }
 ```
 ## Extra notes
-You can use threads to accelerate this correction by adding the flag `-t true` or `--use_threads true` this flag will update 20 records in parallel instead of one by one
+You can use threads to accelerate this correction by adding the flag `-t true` or `--use_threads true` to the `cmd` sent to fargate. This flag will update 20 records in parallel instead of one by one
 ```
-$run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "dlq-cleanup -ids foo___0 bar___1" -p <STACK_PREFIX> -t true
+$run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "dlq-cleanup -ids foo___0 bar___1 -t true" -p <STACK_PREFIX> 
 ```
