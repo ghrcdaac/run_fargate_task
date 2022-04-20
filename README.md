@@ -38,3 +38,11 @@ You can use threads to accelerate this correction by adding the flag `-t true` o
 ```
 $run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "dlq-cleanup -ids foo___0 bar___1 -t true" -p <STACK_PREFIX> 
 ```
+# Use case 2
+Used to sync missing granules from CMR (granules are pushed to CMR but they don't exit in Cumulus records). <br>
+To solve the discrepancy count between Cumulus records and CMR (giving CMR count is bigger) for a collection `foo` version `0` and a collection `bar` version `1`
+
+```code
+$run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "ims-cleanup -ids foo___0 bar___1 -a cmr -p <stack_prefix> -e <cmr_env> -pr <cmr_provider>" -p <STACK_PREFIX>
+```  
+Should output an AWS response that the task ran successfully. Check the logs in the log group for more info about the task
