@@ -33,6 +33,9 @@ Check CloudWatch log group `<PREFIX>-CorrectIMSEcsLogs`. You should see somethin
     "level": "inf"o
 }
 ```
+## DLQ Cleanup UML
+![DLQ Clean up](dlq_uml.png)
+
 ## Extra notes
 You can use threads to accelerate this correction by adding the flag `-t true` or `--use_threads true` to the `cmd` sent to fargate. This flag will update 20 records in parallel instead of one by one
 ```
