@@ -36,8 +36,10 @@ Check CloudWatch log group `<PREFIX>-CorrectIMSEcsLogs`. You should see somethin
 ## DLQ Cleanup UML
 ![DLQ Clean up](dlq_uml.png)
 
-## Extra notes
-You can use threads to accelerate this correction by adding the flag `-t true` or `--use_threads true` to the `cmd` sent to fargate. This flag will update 20 records in parallel instead of one by one
+## Notes
+- This tool is not designed to run for NRT datasets since new granules will be queued and running while this tol is running. You need to run this tool for on-going and static datasets when all their execution is done.
+- This tool should run against a collection in a few days (less than 3) period of time. Don't fix DLQ flags after weeks of execution.
+- You can use threads to accelerate this correction by adding the flag `-t true` or `--use_threads true` to the `cmd` sent to fargate. This flag will update 20 records in parallel instead of one by one
 ```
 $run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "dlq-cleanup -ids foo___0 bar___1 -t true" -p <STACK_PREFIX> 
 ```
