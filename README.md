@@ -51,3 +51,24 @@ To solve the discrepancy count between Cumulus records and CMR (giving CMR count
 $run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "ims-cleanup -ids foo___0 bar___1 -a cmr -p <stack_prefix> -e <cmr_env> -pr <cmr_provider>" -p <STACK_PREFIX>
 ```  
 Should output an AWS response that the task ran successfully. Check the logs in the log group for more info about the task
+
+# Use case 3
+Used to resolve entries in CMR that have errors in the file keys. <br>
+To solve the Cumulus file keys that are malformed in a collection `foo` version `0`
+
+```code
+example.sh
+coll_id=<example___7>
+query='{"query": {"bool": {"must": [{"match_phrase": {"files.key": "<bucket-name>"}}]}}}'
+q=`echo $query | base64 | tr -d '\n'`
+cmd="ims-cleanup -ids $coll_id -p <stack_prefix> -e <cmr_env> -q $q -pr <cmr_provider>"
+run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "$cmd" -p ghrcsit
+```
+
+Second query:
+```code
+query='{"query": {"bool": {"must": [{"query_string": {"fields": ["files.key"],"query": ".cmr.xml"}}]}}}'
+```
+Should output an AWS response that the task ran successfully. Check the logs in the log group for more info about the task.  
+This should resolve most issues, but a second query is needed to ensure that all the .cmr.xml files are corrected to 
+be .cmr.json
