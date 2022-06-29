@@ -44,8 +44,8 @@ Check CloudWatch log group `<PREFIX>-CorrectIMSEcsLogs`. You should see somethin
 $run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "dlq-cleanup -ids foo___0 bar___1 -t true" -p <STACK_PREFIX> 
 ```
 # Use case 2
-Used to sync missing granules from CMR (granules are pushed to CMR but they don't exist in Cumulus records). <br>
-To solve the discrepancy count between Cumulus records and CMR (giving CMR count is bigger) for a collection `foo` version `0` and a collection `bar` version `1`
+Used to sync missing granules (granules exist in CMR but do not have a Cumulus record).
+To solve the discrepancy where the CMR granule count is larger than the Cumulus record count for a collection foo version 0 and a collection bar version 1
 
 ```code
 $run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "ims-cleanup -ids foo___0 bar___1 -a cmr -p <stack_prefix> -e <cmr_env> -pr <cmr_provider>" -p <STACK_PREFIX>
@@ -53,8 +53,8 @@ $run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "ims-cleanup -ids foo
 Should output an AWS response that the task ran successfully. Check the logs in the log group for more info about the task
 
 # Use case 3
-Used to resolve entries in CMR that have errors in the file keys. <br>
-To solve the Cumulus file keys that are malformed in a collection `foo` version `0`
+Used to update the per-granule entries in the Cumulus AWS (ORCA) database tables to correctly refer to the cmr.json S3 objects instead of the incorrect cmr.xml ones.
+To correct the malformed Cumulus file keys in a collection foo version 0
 
 ```code
 example.sh
