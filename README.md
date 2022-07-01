@@ -53,7 +53,7 @@ $run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "ims-cleanup -ids foo
 Should output an AWS response that the task ran successfully. Check the logs in the log group for more info about the task
 
 # Use case 3
-Used to update the per-granule entries in the Cumulus AWS (ORCA) database tables to correctly refer to the cmr.json S3 objects instead of the incorrect cmr.xml ones.
+Used to update the per-granule entries in the Cumulus AWS (ORCA) database tables (dynamoDB) and Cumulus Opensearch/Kibana to correctly refer to the cmr.json S3 objects instead of the incorrect cmr.xml ones and remove the prefix of ghrcw-protected for files.key, if it exists.
 To correct the malformed Cumulus file keys in a collection foo version 0
 
 ```code
@@ -66,6 +66,7 @@ run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "$cmd" -p ghrcsit
 ```
 
 Second query:
+Used to update the per-granule entries in the Cumulus AWS (ORCA) database tables (dynamoDB) and Cumulus Opensearch/Kibana to correctly refer to the cmr.json S3 objects instead of the incorrect cmr.xml ones.  This second query does not check for a prefix of ghrcw-protected.  This second query should be run after running the 1st query on datasets identified as having granules with prefix of files:key = ghrcw-protected/granule_name or metadata file name. 
 ```code
 query='{"query": {"bool": {"must": [{"query_string": {"fields": ["files.key"],"query": ".cmr.xml"}}]}}}'
 ```
