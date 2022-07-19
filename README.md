@@ -73,3 +73,15 @@ query='{"query": {"bool": {"must": [{"query_string": {"fields": ["files.key"],"q
 Should output an AWS response that the task ran successfully. Check the logs in the log group for more info about the task.  
 This should resolve most issues, but a second query is needed to ensure that all the .cmr.xml files are corrected to 
 be .cmr.json
+
+## use case 3 important note:
+In case the query passed to the process target the records that will not change (example you query only for a collection with name "foo" the process won't change the collection name but will correct the record, so your query will return the same results again and again including the corrected one) we implemented a marker that will target 'timeToPreprocess' the default value is `316` but you can override this value by passing `-m` option to `cmd`
+```code
+example.sh
+coll_id=<example___7>
+query='{"query": {"bool": {"must": [{"match_phrase": {"files.key": "rss"}}]}}}'
+q=`echo $query | base64 | tr -d '\n'`
+cmd="ims-cleanup -ids $coll_id -p <stack_prefix> -e <cmr_env> -q $q -pr <cmr_provider> -m 318"
+run-task-in-fargate -aws_profile <YOUR_AWS_PROFILE>  -cmd "$cmd" -p ghrcsit
+```
+In this example we override the marker value to `318`
